@@ -2,6 +2,7 @@ package network
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	NetWork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-04-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -19,6 +20,7 @@ type Client struct {
 	LocalNetworkGatewaysClient      network.LocalNetworkGatewaysClient
 	ProfileClient                   network.ProfilesClient
 	PacketCapturesClient            network.PacketCapturesClient
+	PrivateEndpointClient           NetWork.PrivateEndpointsClient
 	PublicIPsClient                 network.PublicIPAddressesClient
 	PublicIPPrefixesClient          network.PublicIPPrefixesClient
 	RoutesClient                    network.RoutesClient
@@ -77,6 +79,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	c.PacketCapturesClient = network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
+
+	c.PrivateEndpointClient = NetWork.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&c.PrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
 
 	c.VnetPeeringsClient = network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&c.VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
