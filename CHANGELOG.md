@@ -6,9 +6,11 @@ FEATURES:
 * **New Resource:** `azurerm_dev_test_lab_schedule` [GH-3554]
 * **New Resource:** `azurerm_mariadb_configuration` [GH-4060]
 * **New Resource:** `azurerm_private_dns_cname_record` [GH-4028]
+* **New resource:** `azurerm_virtual_wan` [GH-4089]
 
 IMPROVEMENTS:
 
+* all resources: increasing the maximum number of tags from `15` to `50` [GH-4071]
 * dependencies: upgrading the `authorization` SDK to `2018-09-01` [GH-4063]
 * dependencies: upgrading `github.com/hashicorp/terraform` to `0.12.6` [GH-4041]
 * internal: removing a duplicate Date/Time from the debug logs [GH-4024]
@@ -27,8 +29,9 @@ BUG FIXES:
 
 * `azurerm_app_service_plan` - workaround for missing error on 404 [GH-3990]
 * `azurerm_batch_certificate` - the `thumbprint_algorithm` property is now case insensitive [GH-3977]
-* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
+* `azurerm_notification_hub_authorization_rule - fixing an issue when creating multiple authorization rules at the same time [GH-4087]
 * `azurerm_postgresql_server` - removal of unsupported version `10.2` [GH-3915]
+* `azurerm_role_definition` - enture `role_definition_id` is correctly set if left empty during creation [GH-3913]
 * `azurerm_storage_account` - making `default_action` within the `network_rules` block required [GH-4037]
 * `azurerm_storage_account` - making the `network_rules` block computed [GH-4037]
 * `azurerm_storage_share` - allow up to 100TB for the `quota` property [GH-4054]
