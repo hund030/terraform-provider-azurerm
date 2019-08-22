@@ -42,9 +42,10 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 			},
 
 			"private_link_service_connections": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MinItems:      1,
+				ConflictsWith: []string{"manual_private_link_service_connections"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -64,8 +65,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Optional: true,
 							MinItems: 0,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
+								Type: schema.TypeString,
 							},
 						},
 
@@ -80,9 +80,10 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 			},
 
 			"manual_private_link_service_connections": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MinItems:      1,
+				ConflictsWith: []string{"private_link_service_connections"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -147,19 +148,19 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	peProperties, pePropsErr := expandPrivateEndpointProperties(d)
-	if pePropsErr != nil {
-		return pePropsErr
+	prop, err := expandPrivateEndpointProperties(d)
+	if err != nil {
+		return err
 	}
 
-	pe := network.PrivateEndpoint{
+	param := network.PrivateEndpoint{
 		Name:                      &name,
 		Location:                  &location,
-		PrivateEndpointProperties: peProperties,
+		PrivateEndpointProperties: prop,
 		Tags:                      expandTags(tags),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, pe)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, param)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating Private Endpoint %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -212,10 +213,8 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error reading PrivateEndpointProperties")
 	}
 
-	if prop.Subnet != nil {
-		if err := d.Set("subnet_id", prop.Subnet.ID); err != nil {
-			return fmt.Errorf("Error setting `subnet_id`: %+v", err)
-		}
+	if err := d.Set("subnet_id", prop.Subnet.ID); err != nil {
+		return fmt.Errorf("Error setting `subnet_id`: %+v", err)
 	}
 
 	if prop.ManualPrivateLinkServiceConnections != nil {
@@ -257,24 +256,23 @@ func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func expandPrivateEndpointProperties(d *schema.ResourceData) (*network.PrivateEndpointProperties, error) {
-	properties := &network.PrivateEndpointProperties{}
-
-	if v, ok := d.GetOk("subnet_id"); ok {
-		subnetID := v.(string)
-		subnet := network.Subnet{ID: &subnetID}
-		properties.Subnet = &subnet
+	subnetId := d.Get("subnet_id").(string)
+	prop := &network.PrivateEndpointProperties{
+		Subnet: &network.Subnet{
+			ID: &subnetId,
+		},
 	}
 
 	if v, ok := d.GetOk("private_link_service_connections"); ok {
 		plsc := v.([]interface{})
-		properties.PrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
+		prop.PrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
 	}
 	if v, ok := d.GetOk("manual_private_link_service_connections"); ok {
 		plsc := v.([]interface{})
-		properties.ManualPrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
+		prop.ManualPrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
 	}
 
-	return properties, nil
+	return prop, nil
 }
 
 func expandPrivateLinkServiceConnection(connection []interface{}) *[]network.PrivateLinkServiceConnection {

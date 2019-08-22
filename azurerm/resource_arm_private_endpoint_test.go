@@ -62,7 +62,7 @@ func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
+	conn := testAccProvider.Meta().(*ArmClient).network.PrivateEndpointClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -73,7 +73,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

@@ -17,6 +17,7 @@ type Client struct {
 	InterfacesClient                *network.InterfacesClient
 	LoadBalancersClient             *network.LoadBalancersClient
 	LocalNetworkGatewaysClient      *network.LocalNetworkGatewaysClient
+	P2sVpnGatewayClient             *network.P2sVpnGatewaysClient
 	ProfileClient                   *network.ProfilesClient
 	PacketCapturesClient            *network.PacketCapturesClient
 	PrivateEndpointClient           *network.PrivateEndpointsClient
@@ -76,6 +77,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VnetClient := network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetClient.Client, o.ResourceManagerAuthorizer)
 
+	P2sVpnGatewayClient := network.NewP2sVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&P2sVpnGatewayClient.Client, o.ResourceManagerAuthorizer)
+
 	PacketCapturesClient := network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -130,6 +134,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		InterfacesClient:                &InterfacesClient,
 		LoadBalancersClient:             &LoadBalancersClient,
 		LocalNetworkGatewaysClient:      &LocalNetworkGatewaysClient,
+		P2sVpnGatewayClient:             &P2sVpnGatewayClient,
 		ProfileClient:                   &ProfileClient,
 		PacketCapturesClient:            &PacketCapturesClient,
 		PrivateEndpointClient:           &PrivateEndpointClient,
