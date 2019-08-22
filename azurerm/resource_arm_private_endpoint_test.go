@@ -29,7 +29,6 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
-					// resource.TestCheckResourceAttr(resourceName, ""),
 				),
 			},
 		},
@@ -48,7 +47,6 @@ func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestChe
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).network.PrivateEndpointClient
-		fmt.Println(privateEndpoint)
 
 		resp, err := conn.Get(ctx, resourceGroup, privateEndpoint, "")
 		if err != nil {
@@ -91,7 +89,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 func testAccAzureRMPrivateEndpoint_basic(rInt int, privateEndpointSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d-privateendpoint"
+  name     = "testaccRG-%d-endpoint"
   location = "%s"
 }
 
@@ -99,8 +97,10 @@ resource "azurerm_private_endpoint" "test" {
   name                = "testaccendpoint%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  private_link_service_connections {
-    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls-westus2"
+  subnet_id           = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vn-westus2/subnets/default"
+  manual_private_link_service_connections {
+    name = "plsConnection"
+    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls2-westus2"
   }
 }
 `, rInt, location, privateEndpointSuffix)

@@ -37,7 +37,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 
 			"subnet_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -317,7 +317,7 @@ func flattenPrivateLinkServiceConnection(plsc *[]network.PrivateLinkServiceConne
 
 		prop := c.PrivateLinkServiceConnectionProperties
 
-		v["name"] = *prop.Name
+		v["name"] = c.Name
 		v["private_link_service_id"] = *prop.PrivateLinkServiceID
 		v["group_ids"] = utils.FlattenStringSlice(prop.GroupIds)
 		v["request_message"] = *prop.RequestMessage

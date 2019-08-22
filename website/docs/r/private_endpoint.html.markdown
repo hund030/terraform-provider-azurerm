@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Optional) The ID of the subnet from which the private IP will be allocated.
+* `subnet_id` - (Required) The ID of the subnet from which the private IP will be allocated.
 
 * `private_link_service_connections` - (Optional) A grouping of information about the connection to the remote resource.
 
@@ -65,6 +65,8 @@ The following arguments are supported:
 ---
 
 Both `private_link_service_connections` block and `manual_private_link_service_connections` block support the following:
+
+* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
 * `private_link_service_id` - (Required) The resource id of private link service.
 

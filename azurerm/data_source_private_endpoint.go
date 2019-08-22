@@ -36,6 +36,11 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"private_link_service_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -60,6 +65,11 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"private_link_service_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -112,12 +122,31 @@ func dataSourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	plsc := prop.ManualPrivateLinkServiceConnections
+	if prop.ManualPrivateLinkServiceConnections == nil {
+		plsc = prop.PrivateLinkServiceConnections
+	}
+
+	flat := make([]interface{}, 0, len(*plsc))
+	for _, c := range *plsc {
+		v := make(map[string]interface{})
+
+		prop := c.PrivateLinkServiceConnectionProperties
+
+		v["name"] = c.Name
+		v["private_link_service_id"] = *prop.PrivateLinkServiceID
+		v["group_ids"] = utils.FlattenStringSlice(prop.GroupIds)
+		v["request_message"] = *prop.RequestMessage
+
+		flat = append(flat, v)
+	}
+
 	if prop.ManualPrivateLinkServiceConnections != nil {
-		if err := d.Set("manual_private_link_service_connections", flattenPrivateLinkServiceConnection(prop.ManualPrivateLinkServiceConnections)); err != nil {
+		if err := d.Set("manual_private_link_service_connections", flat); err != nil {
 			return fmt.Errorf("Error setting `manual_private_link_service_connections`: %+v", err)
 		}
 	} else {
-		if err := d.Set("private_link_service_connections", flattenPrivateLinkServiceConnection(prop.PrivateLinkServiceConnections)); err != nil {
+		if err := d.Set("private_link_service_connections", flat); err != nil {
 			return fmt.Errorf("Error setting `private_link_service_connections`: %+v", err)
 		}
 	}
