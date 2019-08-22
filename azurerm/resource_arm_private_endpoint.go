@@ -47,6 +47,12 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"private_link_service_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -55,7 +61,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 
 						"group_ids": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							MinItems: 0,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -79,6 +85,12 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
 						"private_link_service_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -87,7 +99,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 
 						"group_ids": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -270,6 +282,7 @@ func expandPrivateLinkServiceConnection(connection []interface{}) *[]network.Pri
 
 	for _, v := range connection {
 		config := v.(map[string]interface{})
+		name := config["name"].(string)
 		privateLinkServiceID := config["private_link_service_id"].(string)
 		requestMsg := config["request_message"].(string)
 		gIDs := config["group_ids"].([]interface{})
@@ -279,6 +292,7 @@ func expandPrivateLinkServiceConnection(connection []interface{}) *[]network.Pri
 		}
 
 		plsConnection := network.PrivateLinkServiceConnection{
+			Name: &name,
 			PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
 				PrivateLinkServiceID: &privateLinkServiceID,
 				GroupIds:             &groupIDs,
@@ -303,6 +317,7 @@ func flattenPrivateLinkServiceConnection(plsc *[]network.PrivateLinkServiceConne
 
 		prop := c.PrivateLinkServiceConnectionProperties
 
+		v["name"] = *prop.Name
 		v["private_link_service_id"] = *prop.PrivateLinkServiceID
 		v["group_ids"] = utils.FlattenStringSlice(prop.GroupIds)
 		v["request_message"] = *prop.RequestMessage

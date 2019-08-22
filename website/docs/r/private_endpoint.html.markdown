@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `manual_private_link_service_connections` - (Optional) A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource.
 
+~> **NOTE:** Either `private_link_service_connections` or `manual_private_link_service_connections` should be set.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -66,7 +68,7 @@ Both `private_link_service_connections` block and `manual_private_link_service_c
 
 * `private_link_service_id` - (Required) The resource id of private link service.
 
-* `group_ids` - (Required) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
+* `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
 

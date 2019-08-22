@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -89,14 +90,18 @@ func resourceArmSubnet() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.BareMetal/AzureVMware",
+											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
+											"Microsoft.Databricks/workspaces",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 										}, false),
 									},
@@ -145,8 +150,8 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	addressPrefix := d.Get("address_prefix").(string)
 
-	azureRMLockByName(vnetName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -163,8 +168,8 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			return err
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	} else {
 		properties.NetworkSecurityGroup = nil
 	}
@@ -180,8 +185,8 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			return err
 		}
 
-		azureRMLockByName(routeTableName, routeTableResourceName)
-		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+		locks.ByName(routeTableName, routeTableResourceName)
+		defer locks.UnlockByName(routeTableName, routeTableResourceName)
 	} else {
 		properties.RouteTable = nil
 	}
@@ -223,7 +228,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -283,7 +288,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -298,8 +303,8 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			return err2
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -309,15 +314,15 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			return err2
 		}
 
-		azureRMLockByName(routeTableName, routeTableResourceName)
-		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+		locks.ByName(routeTableName, routeTableResourceName)
+		defer locks.UnlockByName(routeTableName, routeTableResourceName)
 	}
 
-	azureRMLockByName(vnetName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
-	azureRMLockByName(name, subnetResourceName)
-	defer azureRMUnlockByName(name, subnetResourceName)
+	locks.ByName(name, subnetResourceName)
+	defer locks.UnlockByName(name, subnetResourceName)
 
 	future, err := client.Delete(ctx, resGroup, vnetName, name)
 	if err != nil {
