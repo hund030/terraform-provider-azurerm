@@ -9,12 +9,12 @@ description: |-
 
 # Data Source: azurerm_private_endpoint
 
-Use this data source to access information about an existing Batch Account.
+Use this data source to access information about an existing Private Endpoint.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_batch_account" "test" {
+data "azurerm_private_endpoint" "test" {
     name                = "testprivateendpoint"
     resource_group_name = "test"
 }

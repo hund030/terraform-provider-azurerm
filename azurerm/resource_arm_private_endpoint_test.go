@@ -97,10 +97,10 @@ resource "azurerm_private_endpoint" "test" {
   name                = "testaccendpoint%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  subnet_id           = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vn-westus2/subnets/default"
+  subnet_id           = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vnet/subnets/default"
   manual_private_link_service_connections {
     name = "plsConnection"
-    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls2-westus2"
+    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
   }
 }
 `, rInt, location, privateEndpointSuffix)
