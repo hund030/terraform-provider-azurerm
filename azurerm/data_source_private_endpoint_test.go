@@ -44,7 +44,7 @@ resource "azurerm_private_endpoint" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   subnet_id           = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vnet/subnets/default"
-  manual_private_link_service_connections {
+  private_link_service_connections {
     name = "plsConnection"
     private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
   }

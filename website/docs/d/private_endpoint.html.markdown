@@ -19,8 +19,8 @@ data "azurerm_private_endpoint" "test" {
     resource_group_name = "test"
 }
 
-output "" {
-    value = ""
+output "subnet_id" {
+    value = "data.azurerm_private_endpoint.test.subnet_id"
 }
 ```
 

@@ -17,26 +17,18 @@ Manages an Azure Private Endpoint
 resource "azurerm_resource_group" "test" {
   name     = "resourceGroup1"
   location = "West US"
-  tags     = {
-      env = "test"
-  }
 }
 
 resource "azurerm_private_endpoint" "test" {
   name                = "testprivateendpoint"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  subnet_id           = "/subscriptions/subId/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
+  subnet_id           = "${azurerm_subnet.test.id}"
 
   private_link_service_connections {
-    private_link_service_id = "/subscriptions/subId/resourceGroups/rg1/providers/Microsoft.Network/privateLinkServices/testPls"
-    request_message         = "blablablabla."
-    group_ids = [
-        "groupIdFromResource"
-    ]
+    name                    = "plsConnection"
+    private_link_service_id = "${azurerm_private_link_service.test.id}"
   }
-
-  tags                = "${azurerm_resource_group.test.tags}"
 }
 ```
 
