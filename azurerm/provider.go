@@ -88,7 +88,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_watcher":                        dataSourceArmNetworkWatcher(),
 		"azurerm_notification_hub_namespace":             dataSourceNotificationHubNamespace(),
 		"azurerm_notification_hub":                       dataSourceNotificationHub(),
-		"azurerm_p2s_vpn_gateway":						  dataSourceArmP2sVpnGateway(),
+		"azurerm_p2s_vpn_gateway":                        dataSourceArmP2sVpnGateway(),
 		"azurerm_private_endpoint":                       dataSourceArmPrivateEndpoint(),
 		"azurerm_platform_image":                         dataSourceArmPlatformImage(),
 		"azurerm_policy_definition":                      dataSourceArmPolicyDefinition(),

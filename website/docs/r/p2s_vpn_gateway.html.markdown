@@ -13,6 +13,23 @@ Manages an Azure Batch account.
 
 ## Example Usage
 
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "resourceGroup1"
+  location = "West US"
+}
+
+resource "azurerm_p2s_vpn_gateway" "p2sgw" {
+  name                  = "testp2svpngateway"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+
+  virtual_hub_id           = "${azurerm_virtual_hub.test.id}"
+  p2s_vpn_server_configuration_id = "${azurerm_p2s_vpn_server_configuration.test.id}"
+  vpn_client_address_pool_prefixes = ["101.3.0.0/16"]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:

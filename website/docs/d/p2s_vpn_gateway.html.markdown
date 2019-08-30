@@ -19,8 +19,8 @@ data "azurerm_p2s_vpn_gateway" "test" {
     resource_group_name = "test"
 }
 
-output "" {
-    value = ""
+output "virtual_hub_id" {
+    value = "${data.azurerm_p2s_vpn_gateway.test.virtual_hub_id}"
 }
 ```
 
