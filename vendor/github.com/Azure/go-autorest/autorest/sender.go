@@ -16,10 +16,7 @@ package autorest
 
 import (
 	"context"
-<<<<<<< HEAD
-=======
 	"crypto/tls"
->>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 	"fmt"
 	"log"
 	"math"
@@ -35,15 +32,11 @@ import (
 type ctxSendDecorators struct{}
 
 // WithSendDecorators adds the specified SendDecorators to the provided context.
-<<<<<<< HEAD
-func WithSendDecorators(ctx context.Context, sendDecorator []SendDecorator) context.Context {
-=======
 // If no SendDecorators are provided the context is unchanged.
 func WithSendDecorators(ctx context.Context, sendDecorator []SendDecorator) context.Context {
 	if len(sendDecorator) == 0 {
 		return ctx
 	}
->>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 	return context.WithValue(ctx, ctxSendDecorators{}, sendDecorator)
 }
 
@@ -271,8 +264,6 @@ func DoRetryForStatusCodes(attempts int, backoff time.Duration, codes ...int) Se
 	return func(s Sender) Sender {
 		return SenderFunc(func(r *http.Request) (*http.Response, error) {
 			return doRetryForStatusCodesImpl(s, r, false, attempts, backoff, 0, codes...)
-<<<<<<< HEAD
-=======
 		})
 	}
 }
@@ -285,26 +276,10 @@ func DoRetryForStatusCodesWithCap(attempts int, backoff, cap time.Duration, code
 	return func(s Sender) Sender {
 		return SenderFunc(func(r *http.Request) (*http.Response, error) {
 			return doRetryForStatusCodesImpl(s, r, true, attempts, backoff, cap, codes...)
->>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 		})
 	}
 }
 
-<<<<<<< HEAD
-// DoRetryForStatusCodesWithCap returns a SendDecorator that retries for specified statusCodes for up to the
-// specified number of attempts, exponentially backing off between requests using the supplied backoff
-// time.Duration (which may be zero). To cap the maximum possible delay between iterations specify a value greater
-// than zero for cap. Retrying may be canceled by cancelling the context on the http.Request.
-func DoRetryForStatusCodesWithCap(attempts int, backoff, cap time.Duration, codes ...int) SendDecorator {
-	return func(s Sender) Sender {
-		return SenderFunc(func(r *http.Request) (*http.Response, error) {
-			return doRetryForStatusCodesImpl(s, r, true, attempts, backoff, cap, codes...)
-		})
-	}
-}
-
-=======
->>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 func doRetryForStatusCodesImpl(s Sender, r *http.Request, count429 bool, attempts int, backoff, cap time.Duration, codes ...int) (resp *http.Response, err error) {
 	rr := NewRetriableRequest(r)
 	// Increment to add the first call (attempts denotes number of retries)

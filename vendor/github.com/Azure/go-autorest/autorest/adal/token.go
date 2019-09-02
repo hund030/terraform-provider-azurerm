@@ -1023,8 +1023,6 @@ func (mt *MultiTenantServicePrincipalToken) EnsureFreshWithContext(ctx context.C
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // RefreshWithContext obtains a fresh token for the Service Principal.
 func (mt *MultiTenantServicePrincipalToken) RefreshWithContext(ctx context.Context) error {
 	if err := mt.PrimaryToken.RefreshWithContext(ctx); err != nil {
@@ -1051,7 +1049,6 @@ func (mt *MultiTenantServicePrincipalToken) RefreshExchangeWithContext(ctx conte
 	return nil
 }
 
->>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 // NewMultiTenantServicePrincipalToken creates a new MultiTenantServicePrincipalToken with the specified credentials and resource.
 func NewMultiTenantServicePrincipalToken(multiTenantCfg MultiTenantOAuthConfig, clientID string, secret string, resource string) (*MultiTenantServicePrincipalToken, error) {
 	if err := validateStringParam(clientID, "clientID"); err != nil {

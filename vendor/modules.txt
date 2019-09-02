@@ -6,11 +6,6 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/compute/metadata
-<<<<<<< HEAD
-# contrib.go.opencensus.io/exporter/ocagent v0.5.0
-contrib.go.opencensus.io/exporter/ocagent
-=======
->>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 # github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
