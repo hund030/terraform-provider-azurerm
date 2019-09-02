@@ -20,6 +20,7 @@ require (
 	github.com/terraform-providers/terraform-provider-azuread v0.4.1-0.20190610202312-5a179146b9f9
 	github.com/tombuildsstuff/giovanni v0.3.2
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20190502183928-7f726cade0ab
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/tools v0.0.0-20190830082254-f340ed3ae274 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
