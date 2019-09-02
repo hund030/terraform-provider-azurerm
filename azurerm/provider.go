@@ -21,13 +21,14 @@ func Provider() terraform.ResourceProvider {
 	// the Service Registration interface to gradually migrate Data Sources/Resources over to the
 	// new pattern.
 	// However this requires that the following be done first:
-	//  1. Migrating the top level functions into the internal package
-	//		e.g. deprecated.go, locks.go
-	//	2. Switch the remaining resources over to the new Storage SDK
+	//  1. (DONE) Migrating the top level functions into the internal package
+	//	2. (DONE) Finish migrating the SDK Clients into Packages
+	//	3. Switch the remaining resources over to the new Storage SDK
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
-	//	3. Finish migrating the SDK Clients into Packages
 	//	4. Making the SDK Clients public in the ArmClient prior to moving
-	//	5. Migrating the `ArmClient` from `common.go` into internal/common/clients.go
+	//  5. Introducing a parent struct which becomes a nested field in `config.go`
+	//  	for those properties, to ease migration (probably internal/common/clients.go)
+	//	6. Migrating references from the `ArmClient` to the new parent client
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
 	supportedServices := []common.ServiceRegistration{}
@@ -145,6 +146,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_subscription":                        resourceArmApiManagementSubscription(),
 		"azurerm_api_management_user":                                resourceArmApiManagementUser(),
 		"azurerm_app_service_active_slot":                            resourceArmAppServiceActiveSlot(),
+		"azurerm_app_service_certificate":                            resourceArmAppServiceCertificate(),
 		"azurerm_app_service_custom_hostname_binding":                resourceArmAppServiceCustomHostnameBinding(),
 		"azurerm_app_service_plan":                                   resourceArmAppServicePlan(),
 		"azurerm_app_service_slot":                                   resourceArmAppServiceSlot(),
@@ -258,6 +260,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_key_vault_secret":                                   resourceArmKeyVaultSecret(),
 		"azurerm_key_vault":                                          resourceArmKeyVault(),
 		"azurerm_kubernetes_cluster":                                 resourceArmKubernetesCluster(),
+		"azurerm_kusto_cluster":                                      resourceArmKustoCluster(),
 		"azurerm_lb_backend_address_pool":                            resourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_nat_pool":                                        resourceArmLoadBalancerNatPool(),
 		"azurerm_lb_nat_rule":                                        resourceArmLoadBalancerNatRule(),
@@ -331,8 +334,14 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_endpoint":                                                       resourceArmPrivateEndpoint(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
 		"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
+		"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
+		"azurerm_recovery_replicated_vm":                                                 resourceArmRecoveryServicesReplicatedVm(),
+		"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
 		"azurerm_recovery_services_protected_vm":                                         resourceArmRecoveryServicesProtectedVm(),
+		"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
+		"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
 		"azurerm_recovery_services_protection_policy_vm":                                 resourceArmRecoveryServicesProtectionPolicyVm(),
+		"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
 		"azurerm_recovery_services_vault":                                                resourceArmRecoveryServicesVault(),
 		"azurerm_redis_cache":                                                            resourceArmRedisCache(),
 		"azurerm_redis_firewall_rule":                                                    resourceArmRedisFirewallRule(),
@@ -402,12 +411,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
-		"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
-		"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
-		"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
-		"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
-		"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
-		"azurerm_recovery_replicated_vm":                                                 resourceArmRecoveryServicesReplicatedVm(),
+		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
 	for _, service := range supportedServices {

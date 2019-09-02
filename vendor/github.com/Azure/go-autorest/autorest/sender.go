@@ -16,10 +16,15 @@ package autorest
 
 import (
 	"context"
+<<<<<<< HEAD
+=======
+	"crypto/tls"
+>>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 	"fmt"
 	"log"
 	"math"
 	"net/http"
+	"net/http/cookiejar"
 	"strconv"
 	"time"
 
@@ -30,7 +35,15 @@ import (
 type ctxSendDecorators struct{}
 
 // WithSendDecorators adds the specified SendDecorators to the provided context.
+<<<<<<< HEAD
 func WithSendDecorators(ctx context.Context, sendDecorator []SendDecorator) context.Context {
+=======
+// If no SendDecorators are provided the context is unchanged.
+func WithSendDecorators(ctx context.Context, sendDecorator []SendDecorator) context.Context {
+	if len(sendDecorator) == 0 {
+		return ctx
+	}
+>>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 	return context.WithValue(ctx, ctxSendDecorators{}, sendDecorator)
 }
 
@@ -65,7 +78,7 @@ type SendDecorator func(Sender) Sender
 
 // CreateSender creates, decorates, and returns, as a Sender, the default http.Client.
 func CreateSender(decorators ...SendDecorator) Sender {
-	return DecorateSender(&http.Client{}, decorators...)
+	return DecorateSender(sender(tls.RenegotiateNever), decorators...)
 }
 
 // DecorateSender accepts a Sender and a, possibly empty, set of SendDecorators, which is applies to
@@ -88,7 +101,7 @@ func DecorateSender(s Sender, decorators ...SendDecorator) Sender {
 //
 // Send will not poll or retry requests.
 func Send(r *http.Request, decorators ...SendDecorator) (*http.Response, error) {
-	return SendWithSender(&http.Client{Transport: tracing.Transport}, r, decorators...)
+	return SendWithSender(sender(tls.RenegotiateNever), r, decorators...)
 }
 
 // SendWithSender sends the passed http.Request, through the provided Sender, returning the
@@ -98,6 +111,29 @@ func Send(r *http.Request, decorators ...SendDecorator) (*http.Response, error) 
 // SendWithSender will not poll or retry requests.
 func SendWithSender(s Sender, r *http.Request, decorators ...SendDecorator) (*http.Response, error) {
 	return DecorateSender(s, decorators...).Do(r)
+}
+
+func sender(renengotiation tls.RenegotiationSupport) Sender {
+	// Use behaviour compatible with DefaultTransport, but require TLS minimum version.
+	defaultTransport := http.DefaultTransport.(*http.Transport)
+	transport := &http.Transport{
+		Proxy:                 defaultTransport.Proxy,
+		DialContext:           defaultTransport.DialContext,
+		MaxIdleConns:          defaultTransport.MaxIdleConns,
+		IdleConnTimeout:       defaultTransport.IdleConnTimeout,
+		TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
+		ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
+		TLSClientConfig: &tls.Config{
+			MinVersion:    tls.VersionTLS12,
+			Renegotiation: renengotiation,
+		},
+	}
+	var roundTripper http.RoundTripper = transport
+	if tracing.IsEnabled() {
+		roundTripper = tracing.NewTransport(transport)
+	}
+	j, _ := cookiejar.New(nil)
+	return &http.Client{Jar: j, Transport: roundTripper}
 }
 
 // AfterDelay returns a SendDecorator that delays for the passed time.Duration before
@@ -235,6 +271,8 @@ func DoRetryForStatusCodes(attempts int, backoff time.Duration, codes ...int) Se
 	return func(s Sender) Sender {
 		return SenderFunc(func(r *http.Request) (*http.Response, error) {
 			return doRetryForStatusCodesImpl(s, r, false, attempts, backoff, 0, codes...)
+<<<<<<< HEAD
+=======
 		})
 	}
 }
@@ -247,10 +285,26 @@ func DoRetryForStatusCodesWithCap(attempts int, backoff, cap time.Duration, code
 	return func(s Sender) Sender {
 		return SenderFunc(func(r *http.Request) (*http.Response, error) {
 			return doRetryForStatusCodesImpl(s, r, true, attempts, backoff, cap, codes...)
+>>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 		})
 	}
 }
 
+<<<<<<< HEAD
+// DoRetryForStatusCodesWithCap returns a SendDecorator that retries for specified statusCodes for up to the
+// specified number of attempts, exponentially backing off between requests using the supplied backoff
+// time.Duration (which may be zero). To cap the maximum possible delay between iterations specify a value greater
+// than zero for cap. Retrying may be canceled by cancelling the context on the http.Request.
+func DoRetryForStatusCodesWithCap(attempts int, backoff, cap time.Duration, codes ...int) SendDecorator {
+	return func(s Sender) Sender {
+		return SenderFunc(func(r *http.Request) (*http.Response, error) {
+			return doRetryForStatusCodesImpl(s, r, true, attempts, backoff, cap, codes...)
+		})
+	}
+}
+
+=======
+>>>>>>> d10eb9c9374108140b6d7c9b939957a5fd0b756f
 func doRetryForStatusCodesImpl(s Sender, r *http.Request, count429 bool, attempts int, backoff, cap time.Duration, codes ...int) (resp *http.Response, err error) {
 	rr := NewRetriableRequest(r)
 	// Increment to add the first call (attempts denotes number of retries)
