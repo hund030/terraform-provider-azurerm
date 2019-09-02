@@ -406,14 +406,21 @@ func flattenArmPrivateEndpointPrivateLinkServiceConnection(input *[]network.Priv
 	return results
 }
 
-func flattenArmPrivateEndpointInterface(input *network.Interface) []interface{} {
+func flattenArmPrivateEndpointInterface(input *[]network.Interface) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return make([]interface{}, 0)
+		return results
 	}
 
-	result := make(map[string]interface{})
+	for _, item := range *input {
+		v := make(map[string]interface{})
 
-	return []interface{}{result}
+		v["id"] = *item.ID
+
+		results = append(results, v)
+	}
+
+	return results
 }
 
 func flattenArmPrivateEndpointSubnet(input *network.Subnet) []interface{} {
