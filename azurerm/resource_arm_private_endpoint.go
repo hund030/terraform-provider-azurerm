@@ -75,6 +75,11 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Default:      "Please approve my connection.",
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -114,7 +119,21 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Default:      "Please approve my connection.",
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
+				},
+			},
+
+			"network_interfaces_id": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 
@@ -217,14 +236,16 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting `subnet_id`: %+v", err)
 	}
 
-	if prop.ManualPrivateLinkServiceConnections != nil {
-		if err := d.Set("manual_private_link_service_connections", flattenPrivateLinkServiceConnection(prop.ManualPrivateLinkServiceConnections)); err != nil {
-			return fmt.Errorf("Error setting `manual_private_link_service_connections`: %+v", err)
-		}
-	} else {
-		if err := d.Set("private_link_service_connections", flattenPrivateLinkServiceConnection(prop.PrivateLinkServiceConnections)); err != nil {
-			return fmt.Errorf("Error setting `private_link_service_connections`: %+v", err)
-		}
+	if err := d.Set("manual_private_link_service_connections", flattenPrivateLinkServiceConnection(prop.ManualPrivateLinkServiceConnections)); err != nil {
+		return fmt.Errorf("Error setting `manual_private_link_service_connections`: %+v", err)
+	}
+
+	if err := d.Set("private_link_service_connections", flattenPrivateLinkServiceConnection(prop.PrivateLinkServiceConnections)); err != nil {
+		return fmt.Errorf("Error setting `private_link_service_connections`: %+v", err)
+	}
+
+	if err := d.Set("network_interfaces_id", flattenNetworkInterfacesID(prop.NetworkInterfaces)); err != nil {
+		return fmt.Errorf("Error setting `network_interfaces_id`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -263,23 +284,19 @@ func expandPrivateEndpointProperties(d *schema.ResourceData) (*network.PrivateEn
 		},
 	}
 
-	if v, ok := d.GetOk("private_link_service_connections"); ok {
-		plsc := v.([]interface{})
-		prop.PrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
-	}
-	if v, ok := d.GetOk("manual_private_link_service_connections"); ok {
-		plsc := v.([]interface{})
-		prop.ManualPrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
-	}
+	plsc := d.Get("private_link_service_connections").([]interface{})
+	prop.PrivateLinkServiceConnections = expandPrivateLinkServiceConnection(plsc)
+	mplsc := d.Get("manual_private_link_service_connections").([]interface{})
+	prop.ManualPrivateLinkServiceConnections = expandPrivateLinkServiceConnection(mplsc)
 
 	return prop, nil
 }
 
-func expandPrivateLinkServiceConnection(connection []interface{}) *[]network.PrivateLinkServiceConnection {
-	plsConnections := make([]network.PrivateLinkServiceConnection, 0, len(connection))
+func expandPrivateLinkServiceConnection(inputs []interface{}) *[]network.PrivateLinkServiceConnection {
+	results := make([]network.PrivateLinkServiceConnection, 0, len(inputs))
 
-	for _, v := range connection {
-		config := v.(map[string]interface{})
+	for _, item := range inputs {
+		config := item.(map[string]interface{})
 		name := config["name"].(string)
 		privateLinkServiceID := config["private_link_service_id"].(string)
 		requestMsg := config["request_message"].(string)
@@ -289,7 +306,7 @@ func expandPrivateLinkServiceConnection(connection []interface{}) *[]network.Pri
 			groupIDs = append(groupIDs, id.(string))
 		}
 
-		plsConnection := network.PrivateLinkServiceConnection{
+		result := network.PrivateLinkServiceConnection{
 			Name: &name,
 			PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
 				PrivateLinkServiceID: &privateLinkServiceID,
@@ -298,29 +315,44 @@ func expandPrivateLinkServiceConnection(connection []interface{}) *[]network.Pri
 			},
 		}
 
-		plsConnections = append(plsConnections, plsConnection)
+		results = append(results, result)
 	}
-	return &plsConnections
+	return &results
 }
 
-func flattenPrivateLinkServiceConnection(plsc *[]network.PrivateLinkServiceConnection) []interface{} {
-	flat := make([]interface{}, 0, len(*plsc))
+func flattenPrivateLinkServiceConnection(inputs *[]network.PrivateLinkServiceConnection) []interface{} {
+	results := make([]interface{}, 0, len(*inputs))
 
-	if plsc == nil {
-		return flat
+	if inputs == nil {
+		return results
 	}
 
-	for _, c := range *plsc {
-		v := make(map[string]interface{})
+	for _, item := range *inputs {
+		result := make(map[string]interface{})
 
-		prop := c.PrivateLinkServiceConnectionProperties
+		prop := item.PrivateLinkServiceConnectionProperties
 
-		v["name"] = c.Name
-		v["private_link_service_id"] = *prop.PrivateLinkServiceID
-		v["group_ids"] = utils.FlattenStringSlice(prop.GroupIds)
-		v["request_message"] = *prop.RequestMessage
+		result["name"] = item.Name
+		result["private_link_service_id"] = *prop.PrivateLinkServiceID
+		result["group_ids"] = utils.FlattenStringSlice(prop.GroupIds)
+		result["request_message"] = *prop.RequestMessage
+		result["status"] = *prop.PrivateLinkServiceConnectionState.Status
 
-		flat = append(flat, v)
+		results = append(results, result)
 	}
-	return flat
+	return results
+}
+
+func flattenNetworkInterfacesID(inputs *[]network.Interface) []interface{} {
+	results := make([]interface{}, 0, len(*inputs))
+
+	if inputs == nil {
+		return results
+	}
+
+	for _, item := range *inputs {
+		results = append(results, item.ID)
+	}
+
+	return results
 }

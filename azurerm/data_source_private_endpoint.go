@@ -56,6 +56,11 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -85,8 +90,19 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
+			},
+
+			"network_interfaces_id": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tagsForDataSourceSchema(),
@@ -137,6 +153,7 @@ func dataSourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) 
 		v["private_link_service_id"] = *prop.PrivateLinkServiceID
 		v["group_ids"] = utils.FlattenStringSlice(prop.GroupIds)
 		v["request_message"] = *prop.RequestMessage
+		v["status"] = *prop.PrivateLinkServiceConnectionState.Status
 
 		flat = append(flat, v)
 	}
@@ -149,6 +166,15 @@ func dataSourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) 
 		if err := d.Set("private_link_service_connections", flat); err != nil {
 			return fmt.Errorf("Error setting `private_link_service_connections`: %+v", err)
 		}
+	}
+
+	netInterfacesID := make([]interface{}, 0, len(*prop.NetworkInterfaces))
+	for _, item := range *prop.NetworkInterfaces {
+		netInterfacesID = append(netInterfacesID, item.ID)
+	}
+
+	if err := d.Set("network_interfaces_id", netInterfacesID); err != nil {
+		return fmt.Errorf("Error setting `network_interfaces_id`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
