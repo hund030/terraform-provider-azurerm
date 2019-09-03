@@ -50,11 +50,27 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
+			"subnet_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
 			"manual_private_link_service_connections": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"private_link_service_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
 						"group_ids": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -62,19 +78,11 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"request_message": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"private_link_service_connection_status": {
+						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -87,6 +95,16 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"private_link_service_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
 						"group_ids": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -94,29 +112,16 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"request_message": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"private_link_service_connection_status": {
+						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
-			},
-
-			"subnet_id": {
-				Type:     schema.TypeString,
-				Required: true,
 			},
 
 			"tags": tagsSchema(),
@@ -158,6 +163,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := network.PrivateEndpoint{
+		Location: utils.String(location),
 		PrivateEndpointProperties: &network.PrivateEndpointProperties{
 			ManualPrivateLinkServiceConnections: expandArmPrivateEndpointPrivateLinkServiceConnection(manualPrivateLinkServiceConnections),
 			PrivateLinkServiceConnections:       expandArmPrivateEndpointPrivateLinkServiceConnection(privateLinkServiceConnections),
@@ -165,8 +171,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 				ID: utils.String(subnetId),
 			},
 		},
-		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags: expandTags(tags),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -215,17 +220,17 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if properties := resp.PrivateEndpointProperties; properties != nil {
-		if err := d.Set("manual_private_link_service_connections", flattenArmPrivateEndpointPrivateLinkServiceConnection(properties.ManualPrivateLinkServiceConnections)); err != nil {
+	if privateEndpointProperties := resp.PrivateEndpointProperties; privateEndpointProperties != nil {
+		if err := d.Set("manual_private_link_service_connections", flattenArmPrivateEndpointPrivateLinkServiceConnection(privateEndpointProperties.ManualPrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `manual_private_link_service_connections`: %+v", err)
 		}
-		if err := d.Set("private_link_service_connections", flattenArmPrivateEndpointPrivateLinkServiceConnection(properties.PrivateLinkServiceConnections)); err != nil {
+		if err := d.Set("private_link_service_connections", flattenArmPrivateEndpointPrivateLinkServiceConnection(privateEndpointProperties.PrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_link_service_connections`: %+v", err)
 		}
-		if err := d.Set("network_interfaces_id", flattenArmNetworkInterfacesID(properties.NetworkInterfaces)); err != nil {
+		if err := d.Set("network_interfaces_id", flattenArmNetworkInterfacesID(privateEndpointProperties.NetworkInterfaces)); err != nil {
 			return fmt.Errorf("Error setting `network_interfaces_id`: %+v", err)
 		}
-		if subnet := properties.Subnet; subnet != nil {
+		if subnet := privateEndpointProperties.Subnet; subnet != nil {
 			d.Set("subnet_id", subnet.ID)
 		}
 	}
@@ -266,16 +271,20 @@ func expandArmPrivateEndpointPrivateLinkServiceConnection(input []interface{}) *
 	results := make([]network.PrivateLinkServiceConnection, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		id := v["id"].(string)
+		privateLinkServiceID := v["private_link_service_id"].(string)
 		groupIds := v["group_ids"].([]interface{})
 		requestMessage := v["request_message"].(string)
 		name := v["name"].(string)
+		status := v["status"].(string)
 
 		result := network.PrivateLinkServiceConnection{
 			Name: utils.String(name),
 			PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
-				GroupIds:             utils.ExpandStringSlice(groupIds),
-				PrivateLinkServiceID: utils.String(id),
+				GroupIds: utils.ExpandStringSlice(groupIds),
+				PrivateLinkServiceConnectionState: &network.PrivateLinkServiceConnectionState{
+					Status: utils.String(status),
+				},
+				PrivateLinkServiceID: utils.String(privateLinkServiceID),
 				RequestMessage:       utils.String(requestMessage),
 			},
 		}
@@ -294,17 +303,17 @@ func flattenArmPrivateEndpointPrivateLinkServiceConnection(input *[]network.Priv
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
-		if properties := item.PrivateLinkServiceConnectionProperties; properties != nil {
-			if id := properties.PrivateLinkServiceID; id != nil {
-				v["id"] = *id
-			}
-			v["group_ids"] = utils.FlattenStringSlice(properties.GroupIds)
-			if privateLinkServiceConnectionState := properties.PrivateLinkServiceConnectionState; privateLinkServiceConnectionState != nil {
-				if privateLinkServiceConnectionStatus := privateLinkServiceConnectionState.Status; privateLinkServiceConnectionStatus != nil {
-					v["private_link_service_connection_status"] = *privateLinkServiceConnectionStatus
+		if privateLinkServiceConnectionProperties := item.PrivateLinkServiceConnectionProperties; privateLinkServiceConnectionProperties != nil {
+			v["group_ids"] = utils.FlattenStringSlice(privateLinkServiceConnectionProperties.GroupIds)
+			if privateLinkServiceConnectionState := privateLinkServiceConnectionProperties.PrivateLinkServiceConnectionState; privateLinkServiceConnectionState != nil {
+				if status := privateLinkServiceConnectionState.Status; status != nil {
+					v["status"] = *status
 				}
 			}
-			if requestMessage := properties.RequestMessage; requestMessage != nil {
+			if privateLinkServiceId := privateLinkServiceConnectionProperties.PrivateLinkServiceID; privateLinkServiceId != nil {
+				v["private_link_service_id"] = *privateLinkServiceId
+			}
+			if requestMessage := privateLinkServiceConnectionProperties.RequestMessage; requestMessage != nil {
 				v["request_message"] = *requestMessage
 			}
 		}
