@@ -114,7 +114,7 @@ resource "azurerm_private_endpoint" "test" {
 
   manual_private_link_service_connections {
     name = "acctestconnection-%d"
-    id   = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
+    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
   }
 }
 `, rInt, location, rInt, rInt)

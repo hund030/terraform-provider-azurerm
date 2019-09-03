@@ -23,7 +23,6 @@ description: |-
 
 Manage Azure PrivateEndpoint instance.
 
-
 ## Example Usage
 
 ```hcl
@@ -53,13 +52,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
+* `subnet_id` - (Required) The ID of the subnet from which the private IP will be allocated.
+
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
 * `manual_private_link_service_connections` - (Optional) One or more `manual_private_link_service_connection` block defined below.
 
 * `private_link_service_connections` - (Optional) One or more `private_link_service_connection` block defined below.
-
-* `subnet_id` - (Optional) The ID of the subnet from which the private IP will be allocated.
 
 * `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
 
@@ -67,32 +66,38 @@ The following arguments are supported:
 
 The `manual_private_link_service_connection` block supports the following:
 
-* `private_link_service_id` - (Optional) The resource id of private link service.
+* `private_link_service_id` - (Required) The resource id of private link service.
 
 * `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
 
-* `name` - (Optional) The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
-* `private_link_service_connection_status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
 
 ---
 
 The `private_link_service_connection` block supports the following:
 
-* `private_link_service_id` - (Optional) The resource id of private link service.
+* `private_link_service_id` - (Required) The resource id of private link service.
 
 * `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
 
-* `name` - (Optional) The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
-* `private_link_service_connection_status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `network_interfaces_id` - Gets an array of references to the network interfaces created for this private endpoint.
+* `network_interfaces` - One or more `network_interface` block defined below.
+
+---
+
+The `network_interface` block contains the following:
+
+* `id` - Resource ID.
