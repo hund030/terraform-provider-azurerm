@@ -126,11 +126,16 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			"network_interfaces_id": {
+			"network_interfaces": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 		},
@@ -224,11 +229,11 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("manual_private_link_service_connections", flattenArmPrivateEndpointPrivateLinkServiceConnection(privateEndpointProperties.ManualPrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `manual_private_link_service_connections`: %+v", err)
 		}
+		if err := d.Set("network_interfaces", flattenArmPrivateEndpointInterface(privateEndpointProperties.NetworkInterfaces)); err != nil {
+			return fmt.Errorf("Error setting `network_interfaces`: %+v", err)
+		}
 		if err := d.Set("private_link_service_connections", flattenArmPrivateEndpointPrivateLinkServiceConnection(privateEndpointProperties.PrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_link_service_connections`: %+v", err)
-		}
-		if err := d.Set("network_interfaces_id", flattenArmNetworkInterfacesID(privateEndpointProperties.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interfaces_id`: %+v", err)
 		}
 		if subnet := privateEndpointProperties.Subnet; subnet != nil {
 			d.Set("subnet_id", subnet.ID)
@@ -275,15 +280,11 @@ func expandArmPrivateEndpointPrivateLinkServiceConnection(input []interface{}) *
 		groupIds := v["group_ids"].([]interface{})
 		requestMessage := v["request_message"].(string)
 		name := v["name"].(string)
-		status := v["status"].(string)
 
 		result := network.PrivateLinkServiceConnection{
 			Name: utils.String(name),
 			PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
-				GroupIds: utils.ExpandStringSlice(groupIds),
-				PrivateLinkServiceConnectionState: &network.PrivateLinkServiceConnectionState{
-					Status: utils.String(status),
-				},
+				GroupIds:             utils.ExpandStringSlice(groupIds),
 				PrivateLinkServiceID: utils.String(privateLinkServiceID),
 				RequestMessage:       utils.String(requestMessage),
 			},
@@ -303,18 +304,19 @@ func flattenArmPrivateEndpointPrivateLinkServiceConnection(input *[]network.Priv
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
+		v["name"] = item.Name
 		if privateLinkServiceConnectionProperties := item.PrivateLinkServiceConnectionProperties; privateLinkServiceConnectionProperties != nil {
 			v["group_ids"] = utils.FlattenStringSlice(privateLinkServiceConnectionProperties.GroupIds)
-			if privateLinkServiceConnectionState := privateLinkServiceConnectionProperties.PrivateLinkServiceConnectionState; privateLinkServiceConnectionState != nil {
-				if status := privateLinkServiceConnectionState.Status; status != nil {
-					v["status"] = *status
-				}
-			}
 			if privateLinkServiceId := privateLinkServiceConnectionProperties.PrivateLinkServiceID; privateLinkServiceId != nil {
 				v["private_link_service_id"] = *privateLinkServiceId
 			}
 			if requestMessage := privateLinkServiceConnectionProperties.RequestMessage; requestMessage != nil {
 				v["request_message"] = *requestMessage
+			}
+			if privateLinkServiceConnectionState := privateLinkServiceConnectionProperties.PrivateLinkServiceConnectionState; privateLinkServiceConnectionState != nil {
+				if status := privateLinkServiceConnectionState.Status; status != nil {
+					v["status"] = *status
+				}
 			}
 		}
 
@@ -324,16 +326,20 @@ func flattenArmPrivateEndpointPrivateLinkServiceConnection(input *[]network.Priv
 	return results
 }
 
-func flattenArmNetworkInterfacesID(input *[]network.Interface) []interface{} {
+func flattenArmPrivateEndpointInterface(input *[]network.Interface) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		id := *item.ID
+		v := make(map[string]interface{})
 
-		results = append(results, id)
+		if id := item.ID; id != nil {
+			v["id"] = *id
+		}
+
+		results = append(results, v)
 	}
 
 	return results
