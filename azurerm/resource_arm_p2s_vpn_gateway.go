@@ -129,7 +129,6 @@ func resourceArmP2sVpnGatewayCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	id := d.Get("id").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	customRouteAddressPrefixes := d.Get("custom_route_address_prefixes").([]interface{})
 	p2svpnServerConfigurationID := d.Get("p2svpn_server_configuration_id").(string)
@@ -139,7 +138,6 @@ func resourceArmP2sVpnGatewayCreateUpdate(d *schema.ResourceData, meta interface
 	tags := d.Get("tags").(map[string]interface{})
 
 	p2svpnGatewayParameters := network.P2SVpnGateway{
-		ID:       utils.String(id),
 		Location: utils.String(location),
 		P2SVpnGatewayProperties: &network.P2SVpnGatewayProperties{
 			CustomRoutes: &network.AddressSpace{
