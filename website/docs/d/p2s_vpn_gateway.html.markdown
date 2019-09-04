@@ -23,7 +23,6 @@ description: |-
 
 Use this data source to access information about an existing P2s Vpn Gateway.
 
-
 ## Example Usage
 
 ```hcl

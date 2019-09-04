@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -79,7 +80,7 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -212,16 +213,12 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
+		props, err := queueClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(metaData.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Unexpected error getting MetaData for Queue %q: %s", name, err)
+			return nil
 		}
 
-		return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) still exists", name, accountName)
+		return fmt.Errorf("Queue still exists: %+v", props)
 	}
 
 	return nil
