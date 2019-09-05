@@ -38,8 +38,6 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateEndpoint_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subnet_id", "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vnet/subnets/default"),
-					resource.TestCheckResourceAttr(resourceName, "manual_private_link_service_connections.id", "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"),
 				),
 			},
 			{
@@ -106,16 +104,31 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                              = "acctestsubnet-%d"
+  resource_group_name               = "${azurerm_resource_group.test.name}"
+  virtual_network_name              = "${azurerm_virtual_network.test.name}"
+  address_prefix                    = "10.0.0.0/16"
+  private_endpoint_network_policies = "Disabled"
+}
+
 resource "azurerm_private_endpoint" "test" {
   name                = "acctestendpoint-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  subnet_id           = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vnet/subnets/default"
+  subnet_id           = "${azurerm_subnet.test.id}"
 
   manual_private_link_service_connections {
     name = "acctestconnection-%d"
-    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
+      private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
   }
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
