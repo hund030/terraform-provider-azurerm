@@ -18,7 +18,7 @@ require (
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/sirupsen/logrus v1.2.0 // indirect
 	github.com/terraform-providers/terraform-provider-azuread v0.6.0
-	github.com/tombuildsstuff/giovanni v0.4.0
+	github.com/tombuildsstuff/giovanni v0.5.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/tools v0.0.0-20190830082254-f340ed3ae274 // indirect

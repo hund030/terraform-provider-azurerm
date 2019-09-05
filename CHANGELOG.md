@@ -2,9 +2,13 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_network_ddos_protection_plan` [GH-4228]
 * **New Data Source:** `azurerm_sql_database` [GH-4210]
+* **New Data Source:** `azurerm_storage_account_blob_container_sas` [GH-4195]
 * **New Resource:** `azurerm_app_service_certificate` [GH-4192]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
+* **New Resource:** `azurerm_kusto_database` [GH-4149]
+* **New Resource:** `azurerm_stream_analytics_output_servicebus_topic` [GH-4164]
 * **New Resource:** `azurerm_web_application_firewall_policy` [GH-4119]
 
 IMPROVEMENTS:
@@ -14,6 +18,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * storage: caching the Resource Group Name / Account Key [GH-4205]
+* storage: switching to use SharedKey for authentication with Blobs/Containers rather than SharedKeyLite [GH-4235]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
