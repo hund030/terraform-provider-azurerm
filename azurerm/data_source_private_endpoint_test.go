@@ -60,6 +60,7 @@ func TestAccDataSourceAzureRMPrivateEndpoint_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "private_link_service_connections.0.private_link_service_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.group_ids.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.request_message", "plz approve my request"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.env", "test"),
 				),
 			},
