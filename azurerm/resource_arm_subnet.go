@@ -72,6 +72,11 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
+			"private_link_service_network_policies": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"private_endpoint_network_policies": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -188,6 +193,11 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.PrivateEndpointNetworkPolicies = &privateEndpointNetworkPolicies
 	}
 
+	if v, ok := d.GetOk("private_link_service_network_policies"); ok {
+		privateLinkServiceNetworkPolicies := v.(string)
+		properties.PrivateLinkServiceNetworkPolicies = &privateLinkServiceNetworkPolicies
+	}
+
 	serviceEndpoints := expandSubnetServiceEndpoints(d)
 	properties.ServiceEndpoints = &serviceEndpoints
 
@@ -271,6 +281,12 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return err
 		}
+
+		var privateLinkServiceNetworkPolicies *string
+		if props.PrivateLinkServiceNetworkPolicies != nil {
+			privateLinkServiceNetworkPolicies = props.PrivateLinkServiceNetworkPolicies
+		}
+		d.Set("private_link_service_network_policies", privateLinkServiceNetworkPolicies)
 
 		var privateEndpointNetworkPolicies *string
 		if props.PrivateEndpointNetworkPolicies != nil {

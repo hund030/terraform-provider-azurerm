@@ -21,6 +21,7 @@ type Client struct {
 	ProfileClient                        *network.ProfilesClient
 	PacketCapturesClient                 *network.PacketCapturesClient
 	PrivateEndpointClient                *network.PrivateEndpointsClient
+	PrivateLinkServiceClient             *network.PrivateLinkServicesClient
 	PublicIPsClient                      *network.PublicIPAddressesClient
 	PublicIPPrefixesClient               *network.PublicIPPrefixesClient
 	RoutesClient                         *network.RoutesClient
@@ -87,6 +88,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	PrivateEndpointClient := network.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateLinkServiceClient := network.NewPrivateLinkServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateLinkServiceClient.Client, o.ResourceManagerAuthorizer)
+
 	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -142,6 +146,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		ProfileClient:                        &ProfileClient,
 		PacketCapturesClient:                 &PacketCapturesClient,
 		PrivateEndpointClient:                &PrivateEndpointClient,
+		PrivateLinkServiceClient:             &PrivateLinkServiceClient,
 		PublicIPsClient:                      &PublicIPsClient,
 		PublicIPPrefixesClient:               &PublicIPPrefixesClient,
 		RoutesClient:                         &RoutesClient,
