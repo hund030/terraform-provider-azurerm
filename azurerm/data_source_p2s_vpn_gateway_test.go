@@ -34,10 +34,69 @@ func TestAccDataSourceAzureRMP2sVpnGateway_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceP2sVpnGateway_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "virtual_hub_id", "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualHubs/zhijie-vh-westus2"),
-					resource.TestCheckResourceAttr(dataSourceName, "p2s_vpn_server_configuration_id", "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualWans/zhijie-vw-westus2/p2sVpnServerConfigurations/zhijie-p2scfg-westus2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "p2svpn_server_configuration_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+				),
+			},
+		},
+	})
+}
+func TestAccDataSourceAzureRMP2sVpnGateway_complete(t *testing.T) {
+	dataSourceName := "data.azurerm_p2s_vpn_gateway.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceP2sVpnGateway_complete(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "p2svpn_server_configuration_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+					resource.TestCheckResourceAttr(dataSourceName, "custom_route_address_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "custom_route_address_prefixes.0", "101.168.0.6/32"),
+					resource.TestCheckResourceAttr(dataSourceName, "scale_unit", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.env", "test"),
+				),
+			},
+		},
+	})
+}
+func TestAccDataSourceAzureRMP2sVpnGateway_update(t *testing.T) {
+	dataSourceName := "data.azurerm_p2s_vpn_gateway.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceP2sVpnGateway_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "p2svpn_server_configuration_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+				),
+			},
+			{
+				Config: testAccDataSourceP2sVpnGateway_complete(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "p2svpn_server_configuration_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+					resource.TestCheckResourceAttr(dataSourceName, "custom_route_address_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "custom_route_address_prefixes.0", "101.168.0.6/32"),
+					resource.TestCheckResourceAttr(dataSourceName, "scale_unit", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.env", "test"),
 				),
 			},
 		},
@@ -46,6 +105,18 @@ func TestAccDataSourceAzureRMP2sVpnGateway_basic(t *testing.T) {
 
 func testAccDataSourceP2sVpnGateway_basic(rInt int, location string) string {
 	config := testAccAzureRMP2sVpnGateway_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_p2s_vpn_gateway" "test" {
+  resource_group_name = "${azurerm_p2s_vpn_gateway.test.resource_group_name}"
+  name                = "${azurerm_p2s_vpn_gateway.test.name}"
+}
+`, config)
+}
+
+func testAccDataSourceP2sVpnGateway_complete(rInt int, location string) string {
+	config := testAccAzureRMP2sVpnGateway_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 

@@ -38,8 +38,8 @@ func TestAccAzureRMP2sVpnGateway_basic(t *testing.T) {
 				Config: testAccAzureRMP2sVpnGateway_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMP2sVpnGatewayExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "virtual_hub_id", "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualHubs/zhijie-vh-westus2"),
-					resource.TestCheckResourceAttr(resourceName, "p2s_vpn_server_configuration_id", "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualWans/zhijie-vw-westus2/p2sVpnServerConfigurations/zhijie-p2scfg-westus2"),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "p2svpn_server_configuration_id"),
 					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
 				),
@@ -48,6 +48,77 @@ func TestAccAzureRMP2sVpnGateway_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMP2sVpnGateway_complete(t *testing.T) {
+	resourceName := "azurerm_p2s_vpn_gateway.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMP2sVpnGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMP2sVpnGateway_complete(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMP2sVpnGatewayExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "p2svpn_server_configuration_id"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "custom_route_address_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_route_address_prefixes.0", "101.168.0.6/32"),
+					resource.TestCheckResourceAttr(resourceName, "scale_unit", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMP2sVpnGateway_update(t *testing.T) {
+	resourceName := "azurerm_p2s_vpn_gateway.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMP2sVpnGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMP2sVpnGateway_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMP2sVpnGatewayExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "p2svpn_server_configuration_id"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+				),
+			},
+			{
+				Config: testAccAzureRMP2sVpnGateway_complete(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMP2sVpnGatewayExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_hub_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "p2svpn_server_configuration_id"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_address_pool_prefixes.0", "101.3.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "custom_route_address_prefixes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_route_address_prefixes.0", "101.168.0.6/32"),
+					resource.TestCheckResourceAttr(resourceName, "scale_unit", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+				),
 			},
 		},
 	})
@@ -70,7 +141,7 @@ func testCheckAzureRMP2sVpnGatewayExists(resourceName string) resource.TestCheck
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: P2s Vpn Gateway %q (Resource Group %q) does not exist", name, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on P2sVpnGatewayClient: %+v", err)
+			return fmt.Errorf("Bad: Get on network.P2sVpnGatewayClient: %+v", err)
 		}
 
 		return nil
@@ -91,7 +162,7 @@ func testCheckAzureRMP2sVpnGatewayDestroy(s *terraform.State) error {
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on P2sVpnGatewayClient: %+v", err)
+				return fmt.Errorf("Bad: Get on network.P2sVpnGatewayClient: %+v", err)
 			}
 		}
 
@@ -108,13 +179,85 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_p2s_vpn_server_configuration" "test" {
+  name                = "acctestp2svpnserverconfig-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtualWanName      = "${azurerm_virtual_wan.test.name}"
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name           = "acctestvirtualhub-%d"
+  resource_group = "${azurerm_resource_group.test.name}"
+  location       = "${azurerm_resource_group.test.location}"
+  address_prefix = "10.0.1.0/24"
+
+  virtual_wan {
+    id = "${azurerm_virtual_wan.test.id}"
+  }
+
+  route_table {
+    routes {
+      address_prefixes    = ["10.0.2.0/24", "10.0.3.0/24"]
+      next_hop_ip_address = "10.0.4.5"
+    }
+  }
+}
+
 resource "azurerm_p2s_vpn_gateway" "test" {
   name                             = "acctestgateway-%d"
   resource_group_name              = "${azurerm_resource_group.test.name}"
   location                         = "${azurerm_resource_group.test.location}"
-  virtual_hub_id                   = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualHubs/zhijie-vh-westus2"
-  p2svpn_server_configuration_id  = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualWans/zhijie-vw-westus2/p2sVpnServerConfigurations/zhijie-p2scfg-westus2"
+  virtual_hub_id                   = "${azurerm_virtual_hub.test}.id"
+  p2svpn_server_configuration_id   = "${azurerm_p2s_vpn_server_configuration.test.id}"
   vpn_client_address_pool_prefixes = ["101.3.0.0/16"]
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMP2sVpnGateway_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_p2s_vpn_server_configuration" "test" {
+  name                = "acctestp2svpnserverconfig-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtualWanName      = "${azurerm_virtual_wan.test.name}"
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name           = "acctestvirtualhub-%d"
+  resource_group = "${azurerm_resource_group.test.name}"
+  location       = "${azurerm_resource_group.test.location}"
+  address_prefix = "10.0.1.0/24"
+
+  virtual_wan {
+    id = "${azurerm_virtual_wan.test.id}"
+  }
+
+  route_table {
+    routes {
+      address_prefixes    = ["10.0.2.0/24", "10.0.3.0/24"]
+      next_hop_ip_address = "10.0.4.5"
+    }
+  }
+}
+
+resource "azurerm_p2s_vpn_gateway" "test" {
+  name                             = "acctestgateway-%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  virtual_hub_id                   = "${azurerm_virtual_hub.test}.id"
+  p2svpn_server_configuration_id   = "${azurerm_p2s_vpn_server_configuration.test.id}"
+  vpn_client_address_pool_prefixes = ["101.3.0.0/16"]
+  custom_route_address_prefixes    = ["101.168.0.6/32"]
+  scale_unit                       = 1
+
+  tags = {
+    env = "test"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }
