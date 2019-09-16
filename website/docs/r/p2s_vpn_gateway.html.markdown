@@ -31,12 +31,36 @@ resource "azurerm_resource_group" "example" {
   location = "West US2"
 }
 
+resource "azurerm_p2s_vpn_server_configuration" "example" {
+  name                = "acctestp2svpnserverconfig-%d"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  virtualWanName      = "${azurerm_virtual_wan.example.name}"
+}
+
+resource "azurerm_virtual_hub" "example" {
+  name           = "acctestvirtualhub-%d"
+  resource_group = "${azurerm_resource_group.example.name}"
+  location       = "${azurerm_resource_group.example.location}"
+  address_prefix = "10.0.1.0/24"
+
+  virtual_wan {
+    id = "${azurerm_virtual_wan.example.id}"
+  }
+
+  route_table {
+    routes {
+      address_prefixes    = ["10.0.2.0/24", "10.0.3.0/24"]
+      next_hop_ip_address = "10.0.4.5"
+    }
+  }
+}
+
 resource "azurerm_p2s_vpn_gateway" "example" {
   name                             = "acctestgateway"
   resource_group_name              = "${azurerm_resource_group.example.name}"
   location                         = "${azurerm_resource_group.example.location}"
-  virtual_hub_id                   = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualHubs/zhijie-vh-westus2"
-  p2s_vpn_server_configuration_id  = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo1-zhijie-westus2/providers/Microsoft.Network/virtualWans/zhijie-vw-westus2/p2sVpnServerConfigurations/zhijie-p2scfg-westus2"
+  virtual_hub_id                   = "${azurerm_virtual_hub.example}.id"
+  p2svpn_server_configuration_id   = "${azurerm_p2s_vpn_server_configuration.example.id}"
   vpn_client_address_pool_prefixes = ["101.3.0.0/16"]
 }
 ```
@@ -82,3 +106,11 @@ The `vpn_client_connection_health` block contains the following:
 * `vpn_client_connections_count` - The total of p2s vpn clients connected at this time to this P2SVpnGateway.
 
 * `allocated_ip_addresses` - List of allocated ip addresses to the connected p2s vpn clients.
+
+## Import
+
+P2s Vpn Gateway can be imported using the `resource id`, e.g.
+
+```shell
+$ terraform import azurerm_p2s_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/p2svpnGateways/
+```

@@ -179,16 +179,59 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.5.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsubnet-%d"
+  name                                  = "acctestsnet-%d"
   resource_group_name                   = "${azurerm_resource_group.test.name}"
   virtual_network_name                  = "${azurerm_virtual_network.test.name}"
-  address_prefix                        = "10.0.0.0/16"
+  address_prefix                        = "10.5.1.0/24"
   private_endpoint_network_policies     = "Disabled"
   private_link_service_network_policies = "Disabled"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  frontend_ip_configuration {
+    name                 = "${azurerm_public_ip.test.name}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_private_link_service" "test" {
+  name           = "acctestvirtualhub-%d"
+  location       = "${azurerm_resource_group.test.location}"
+  resource_group = "${azurerm_resource_group.test.name}"
+  fqdns          = ["testFqdns"]
+
+  ip_configurations {
+    name = "${azurerm_public_ip.test.name}"
+
+    subnet {
+      id = "${azurerm_subnet.test.id}"
+    }
+
+    private_ip_address          = "10.5.1.17"
+    private_ip_address_version  = "IPv4"
+    private_ipallocation_method = "Static"
+  }
+
+  load_balancer_frontend_ip_configurations {
+    id = "${azurerm_lb.test.frontend_ip_configuration.0.id}"
+  }
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -199,10 +242,10 @@ resource "azurerm_private_endpoint" "test" {
 
   private_link_service_connections {
     name                    = "acctestconnection-%d"
-    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
+    private_link_service_id = "${azurerm_private_link_service.test.id}"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
@@ -216,16 +259,59 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.5.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsubnet-%d"
+  name                                  = "acctestsnet-%d"
   resource_group_name                   = "${azurerm_resource_group.test.name}"
   virtual_network_name                  = "${azurerm_virtual_network.test.name}"
-  address_prefix                        = "10.0.0.0/16"
+  address_prefix                        = "10.5.1.0/24"
   private_endpoint_network_policies     = "Disabled"
   private_link_service_network_policies = "Disabled"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  frontend_ip_configuration {
+    name                 = "${azurerm_public_ip.test.name}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_private_link_service" "test" {
+  name           = "acctestvirtualhub-%d"
+  location       = "${azurerm_resource_group.test.location}"
+  resource_group = "${azurerm_resource_group.test.name}"
+  fqdns          = ["testFqdns"]
+
+  ip_configurations {
+    name = "${azurerm_public_ip.test.name}"
+
+    subnet {
+      id = "${azurerm_subnet.test.id}"
+    }
+
+    private_ip_address          = "10.5.1.17"
+    private_ip_address_version  = "IPv4"
+    private_ipallocation_method = "Static"
+  }
+
+  load_balancer_frontend_ip_configurations {
+    id = "${azurerm_lb.test.frontend_ip_configuration.0.id}"
+  }
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -236,7 +322,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_link_service_connections {
     name                    = "acctestconnection-%d"
-    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
+    private_link_service_id = "${azurerm_private_link_service.test.id}"
     group_ids               = []
     request_message         = "plz approve my request"
   }
@@ -245,5 +331,5 @@ resource "azurerm_private_endpoint" "test" {
     env = "test"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }

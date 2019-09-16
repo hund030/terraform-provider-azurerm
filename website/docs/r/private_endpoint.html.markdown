@@ -31,15 +31,74 @@ resource "azurerm_resource_group" "example" {
   location = "West US2"
 }
 
+resource "azurerm_virtual_network" "example" {
+  name                = "acctestvnet-%d"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                                  = "acctestsnet-%d"
+  resource_group_name                   = "${azurerm_resource_group.example.name}"
+  virtual_network_name                  = "${azurerm_virtual_network.example.name}"
+  address_prefix                        = "10.5.1.0/24"
+  private_endpoint_network_policies     = "Disabled"
+  private_link_service_network_policies = "Disabled"
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "example" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+
+  frontend_ip_configuration {
+    name                 = "${azurerm_public_ip.example.name}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
+  }
+}
+
+resource "azurerm_private_link_service" "example" {
+  name           = "acctestvirtualhub-%d"
+  location       = "${azurerm_resource_group.example.location}"
+  resource_group = "${azurerm_resource_group.example.name}"
+  fqdns          = ["testFqdns"]
+
+  ip_configurations {
+    name = "${azurerm_public_ip.example.name}"
+
+    subnet {
+      id = "${azurerm_subnet.example.id}"
+    }
+
+    private_ip_address          = "10.5.1.17"
+    private_ip_address_version  = "IPv4"
+    private_ipallocation_method = "Static"
+  }
+
+  load_balancer_frontend_ip_configurations {
+    id = "${azurerm_lb.example.frontend_ip_configuration.0.id}"
+  }
+}
+
 resource "azurerm_private_endpoint" "example" {
   name                = "acctestendpoint"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-  subnet_id           = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/virtualNetworks/zhijie-vnet/subnets/default"
+  subnet_id           = "${azurerm_subnet.example.id}"
 
-  manual_private_link_service_connections {
-    name = "acctestconnection"
-    id   = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
+  private_link_service_connections {
+    name                    = "acctestconnection"
+    private_link_service_id = "${azurerm_private_link_service.example.id}"
   }
 }
 ```
@@ -101,3 +160,11 @@ The following attributes are exported:
 The `network_interface` block contains the following:
 
 * `id` - Resource ID.
+
+## Import
+
+Private Endpoint can be imported using the `resource id`, e.g.
+
+```shell
+$ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/privateEndpoints/example-private-endpoint
+```
