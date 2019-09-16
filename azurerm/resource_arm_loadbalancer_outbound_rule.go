@@ -72,9 +72,9 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.LoadBalancerOutboundRuleProtocolAll),
-					string(network.LoadBalancerOutboundRuleProtocolTCP),
-					string(network.LoadBalancerOutboundRuleProtocolUDP),
+					string(network.TransportProtocolAll),
+					string(network.TransportProtocolTCP),
+					string(network.TransportProtocolUDP),
 				}, false),
 			},
 
