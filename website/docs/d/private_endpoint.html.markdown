@@ -40,11 +40,11 @@ The following attributes are exported:
 
 * `location` - Resource location.
 
-* `manual_private_link_service_connections` - One or more `manual_private_link_service_connection` block defined below.
+* `manual_private_link_service_connections` - A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block defined below.
 
-* `network_interfaces` - One or more `network_interface` block defined below.
+* `network_interfaces` - Gets an array of references to the network interfaces created for this private endpoint. One or more `network_interface` block defined below.
 
-* `private_link_service_connections` - One or more `private_link_service_connection` block defined below.
+* `private_link_service_connections` - A grouping of information about the connection to the remote resource. One or more `private_link_service_connection` block defined below.
 
 * `subnet_id` - The ID of the subnet from which the private IP will be allocated.
 

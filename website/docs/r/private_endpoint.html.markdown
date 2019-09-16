@@ -102,9 +102,9 @@ The following arguments are supported:
 
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
-* `manual_private_link_service_connections` - (Optional) One or more `manual_private_link_service_connection` block defined below.
+* `manual_private_link_service_connections` - (Optional) A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block defined below.
 
-* `private_link_service_connections` - (Optional) One or more `private_link_service_connection` block defined below.
+* `private_link_service_connections` - (Optional) A grouping of information about the connection to the remote resource. One or more `private_link_service_connection` block defined below.
 
 * `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
 
@@ -140,7 +140,7 @@ The `private_link_service_connection` block supports the following:
 
 The following attributes are exported:
 
-* `network_interfaces` - One or more `network_interface` block defined below.
+* `network_interfaces` - Gets an array of references to the network interfaces created for this private endpoint. One or more `network_interface` block defined below.
 
 ---
 
