@@ -39,8 +39,8 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(resourceName, "manual_private_link_service_connections.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
-					resource.TestCheckResourceAttrSet(resourceName, "manual_private_link_service_connections.0.private_link_service_id"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_service_connections.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
+					resource.TestCheckResourceAttrSet(resourceName, "private_link_service_connections.0.private_link_service_id"),
 				),
 			},
 			{
@@ -76,7 +76,35 @@ func TestAccAzureRMPrivateEndpoint_complete(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMPrivateEndpoint_completeUpdate(ri, location),
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPrivateEndpoint_update(t *testing.T) {
+	resourceName := "azurerm_private_endpoint.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPrivateEndpoint_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateEndpointExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_service_connections.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
+					resource.TestCheckResourceAttrSet(resourceName, "private_link_service_connections.0.private_link_service_id"),
+				),
+			},
+			{
+				Config: testAccAzureRMPrivateEndpoint_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
@@ -84,9 +112,8 @@ func TestAccAzureRMPrivateEndpoint_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_service_connections.0.private_link_service_id"),
 					resource.TestCheckResourceAttr(resourceName, "private_link_service_connections.0.group_ids.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "private_link_service_connections.0.request_message", "plz approve my request"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
-					resource.TestCheckResourceAttr(resourceName, "tags.version", "2"),
 				),
 			},
 		},
@@ -156,11 +183,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                              = "acctestsubnet-%d"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  virtual_network_name              = "${azurerm_virtual_network.test.name}"
-  address_prefix                    = "10.0.0.0/16"
-  private_endpoint_network_policies = "Disabled"
+  name                                  = "acctestsubnet-%d"
+  resource_group_name                   = "${azurerm_resource_group.test.name}"
+  virtual_network_name                  = "${azurerm_virtual_network.test.name}"
+  address_prefix                        = "10.0.0.0/16"
+  private_endpoint_network_policies     = "Disabled"
+  private_link_service_network_policies = "Disabled"
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -169,7 +197,7 @@ resource "azurerm_private_endpoint" "test" {
   location            = "${azurerm_resource_group.test.location}"
   subnet_id           = "${azurerm_subnet.test.id}"
 
-  manual_private_link_service_connections {
+  private_link_service_connections {
     name                    = "acctestconnection-%d"
     private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
   }
@@ -192,11 +220,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                              = "acctestsubnet-%d"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  virtual_network_name              = "${azurerm_virtual_network.test.name}"
-  address_prefix                    = "10.0.0.0/16"
-  private_endpoint_network_policies = "Disabled"
+  name                                  = "acctestsubnet-%d"
+  resource_group_name                   = "${azurerm_resource_group.test.name}"
+  virtual_network_name                  = "${azurerm_virtual_network.test.name}"
+  address_prefix                        = "10.0.0.0/16"
+  private_endpoint_network_policies     = "Disabled"
+  private_link_service_network_policies = "Disabled"
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -214,49 +243,6 @@ resource "azurerm_private_endpoint" "test" {
 
   tags = {
     env = "test"
-  }
-}
-`, rInt, location, rInt, rInt, rInt, rInt)
-}
-
-func testAccAzureRMPrivateEndpoint_completeUpdate(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                              = "acctestsubnet-%d"
-  resource_group_name               = "${azurerm_resource_group.test.name}"
-  virtual_network_name              = "${azurerm_virtual_network.test.name}"
-  address_prefix                    = "10.0.0.0/16"
-  private_endpoint_network_policies = "Disabled"
-}
-
-resource "azurerm_private_endpoint" "test" {
-  name                = "acctestendpoint-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  subnet_id           = "${azurerm_subnet.test.id}"
-
-  private_link_service_connections {
-    name                    = "acctestconnection-%d"
-    private_link_service_id = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourceGroups/demo2-zhijie-westus2/providers/Microsoft.Network/privateLinkServices/zhijie-pls"
-    group_ids               = []
-    request_message         = "plz approve my request"
-  }
-
-  tags = {
-    env     = "test"
-    version = "2"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)

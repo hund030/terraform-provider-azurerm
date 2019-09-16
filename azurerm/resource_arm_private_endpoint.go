@@ -53,7 +53,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"manual_private_link_service_connections": {
@@ -69,7 +69,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 						"private_link_service_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"group_ids": {
 							Type:     schema.TypeList,
@@ -103,7 +103,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 						"private_link_service_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"group_ids": {
 							Type:     schema.TypeList,
