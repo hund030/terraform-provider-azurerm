@@ -73,6 +73,11 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
+			"private_endpoint_network_policies": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"delegation": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -195,6 +200,11 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.RouteTable = nil
 	}
 
+	if v, ok := d.GetOk("private_endpoint_network_policies"); ok {
+		privateEndpointNetworkPolicies := v.(string)
+		properties.PrivateEndpointNetworkPolicies = &privateEndpointNetworkPolicies
+	}
+
 	serviceEndpoints := expandSubnetServiceEndpoints(d)
 	properties.ServiceEndpoints = &serviceEndpoints
 
@@ -278,6 +288,12 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return err
 		}
+
+		var privateEndpointNetworkPolicies *string
+		if props.PrivateEndpointNetworkPolicies != nil {
+			privateEndpointNetworkPolicies = props.PrivateEndpointNetworkPolicies
+		}
+		d.Set("private_endpoint_network_policies", privateEndpointNetworkPolicies)
 
 		delegation := flattenSubnetDelegation(props.Delegations)
 		if err := d.Set("delegation", delegation); err != nil {
