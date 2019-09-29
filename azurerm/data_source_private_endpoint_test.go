@@ -23,6 +23,7 @@ func TestAccDataSourceAzureRMPrivateEndpoint_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "private_link_service_connections.0.private_link_service_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.request_message", "Please approve my request"),
 				),
 			},
 		},

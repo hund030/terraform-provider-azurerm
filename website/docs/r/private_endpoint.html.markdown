@@ -57,19 +57,11 @@ resource "azurerm_private_link_service" "example" {
   name = "testpls"
   location = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  fqdns = ["testFqdns"]
-  ip_configurations {
+  nat_ip_configuration {
     name = "${azurerm_public_ip.example.name}"
     subnet_id = "${azurerm_subnet.example.id}"
-    private_ip_address = "10.0.1.17"
-    private_ip_address_version = "IPv4"
-    private_ip_allocation_method = "Static"
   }
   load_balancer_frontend_ip_configuration_ids = ["${azurerm_lb.test.frontend_ip_configuration.0.id}"]
-  tags = {
-    env = "test"
-    version = "2"
-  }
 }
 
 resource "azurerm_private_endpoint" "example" {
@@ -79,7 +71,6 @@ resource "azurerm_private_endpoint" "example" {
   subnet_id           = "${azurerm_subnet.example.id}"
   tags = {
     env = "test"
-    version = "2"
   }
 
   private_link_service_connections {

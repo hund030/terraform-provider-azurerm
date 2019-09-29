@@ -47,6 +47,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 			"manual_private_link_service_connections": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -91,7 +92,8 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 						"request_message": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							ForceNew: true,
+							Default: "Please approve my connection",
 						},
 					},
 				},
@@ -100,6 +102,8 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 			"private_link_service_connections": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -143,7 +147,8 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 						"request_message": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							ForceNew: true,
+							Default: "Please approve my connection",
 						},
 					},
 				},
