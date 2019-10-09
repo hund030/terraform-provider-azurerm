@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -166,7 +166,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPrivateEndpointTemplate_standardResources(rInt int, location string) string {
+func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -225,13 +225,13 @@ resource "azurerm_private_link_service" "test" {
 }
 
 func testAccAzureRMPrivateEndpoint_basic(rInt int, location string) string {
-	standardResources := testAccAzureRMPrivateEndpointTemplate_standardResources(rInt, location)
+	standardResources := testAccAzureRMPrivateEndpointTemplate_template(rInt, location)
 
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_private_link_endpoint" "test" {
-  name                = "acctestendpoint-%d"
+  name                = "acctest-EndPoint-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
@@ -245,13 +245,13 @@ resource "azurerm_private_link_endpoint" "test" {
 }
 
 func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
-	standardResources := testAccAzureRMPrivateEndpointTemplate_standardResources(rInt, location)
+	standardResources := testAccAzureRMPrivateEndpointTemplate_template(rInt, location)
 
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_private_link_endpoint" "test" {
-  name                = "acctestendpoint-%d"
+  name                = "acctest-EndPoint-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id

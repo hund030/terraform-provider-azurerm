@@ -35,17 +35,19 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `location` - Resource location.
+* `id` - The ID of the Private Endpoint.
+
+* `location` - The Azure Region in which this Private Endpoint exists.
 
 * `manual_private_link_service_connections` - A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block defined below.
-
-* `network_interfaces` - Gets an array of references to the network interfaces created for this private endpoint. One or more `network_interface` block defined below.
 
 * `private_link_service_connections` - A grouping of information about the connection to the remote resource. One or more `private_link_service_connection` block defined below.
 
 * `subnet_id` - The ID of the subnet from which the private IP will be allocated.
 
-* `tags` - Resource tags.
+* `network_interface_ids` - Displays an list of network interface ids that have been created for this private endpoint.
+
+* `tags` - A mapping of tags assigned to the resource.
 
 ---
 
@@ -59,13 +61,7 @@ The `manual_private_link_service_connection` block contains the following:
 
 * `name` - The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
-* `status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
-
----
-
-The `network_interface` block contains the following:
-
-* `id` - Resource ID.
+* `status` - Indicates whether the connection has been `Approved`, `Rejected` or `Removed` by the owner of the service.
 
 ---
 
@@ -79,4 +75,4 @@ The `private_link_service_connection` block contains the following:
 
 * `name` - The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
-* `status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `status` - Indicates whether the connection has been `Approved`, `Rejected` or `Removed` by the owner of the service.
